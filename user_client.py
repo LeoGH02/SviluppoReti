@@ -68,6 +68,33 @@ def send_login_request(username,password):
 
 
 
+def user_interface(username):
+    usr_inter = tk.Toplevel()
+    usr_inter.title("Interfaccia")
+
+    # Configura il peso delle righe e delle colonne per adattarsi al contenuto
+    usr_inter.grid_rowconfigure(0, weight=1)
+    usr_inter.grid_columnconfigure(0, weight=1)
+
+    win_label = tk.Label(usr_inter, text=f"Ciao {username}! Cosa vuoi fare?", font=("Helvetica",16))
+    win_label.grid(row=0, column=0, sticky="n", padx=10, pady=10)  # Allinea il label in alto a sinistra con padding
+
+    view_ex_btn = tk.Button(usr_inter, text="Prenota un appello")
+    view_ex_btn.grid(row=1, column=0, sticky="n", padx=10, pady=(0, 10))  # Allinea il bottone sotto al label con padding solo sotto
+
+    #funzione annidata per chiudere la finestra corrente
+    def close_window():
+        usr_inter.destroy()
+
+    exit_btn = tk.Button(usr_inter, text="Esci", command=close_window)
+    exit_btn.grid(row=2, column=0, sticky="n", padx=10, pady=(0,10))
+
+    
+
+
+    
+
+
 
 
 def login():
@@ -78,6 +105,8 @@ def login():
 
     if response['status'] == 'success':
         messagebox.showinfo("Successo", "Login avvenuto con successo!")
+        root.withdraw()
+        user_interface(username)
     else:
         messagebox.showerror("Errore", "Username o password errati")
 
@@ -99,7 +128,7 @@ usr_entry = tk.Entry(root)
 usr_entry.grid(row=1,column=0)
 
 psw_label = tk.Label(root,text="password").grid(row=2,column=0)
-psw_entry = tk.Entry(root)
+psw_entry = tk.Entry(root, show="*")
 psw_entry.grid(row=3,column=0)
 
 login_btn = tk.Button(text="Login",command=login).grid(row=4, columnspan=2)

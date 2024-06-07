@@ -60,7 +60,7 @@ def create_server_socket(indirizzo, backlog=1):
     
         conn.send(json.dumps(response).encode('utf-8'))
         conn.close()
-        
+    
 
 
 
