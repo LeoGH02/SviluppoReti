@@ -2,8 +2,14 @@ import sys
 import tkinter
 import socket
 import threading
+import json
 
 
+def get_users():
+    with open("users.json","r") as f:
+        return json.load(f)
+
+users = get_users()
 
 
 
@@ -43,8 +49,19 @@ def create_server_socket(indirizzo, backlog=1):
         #accept restituisce una tupla, il primo valore è la connesione in se, il secondo è l'ip del client
         #uso il modulo threading per creare un thread che mi permetterà l'invio e la ricezione di dati da quella connessione
         print(f"Connessione stabilita con {indirizzo_client}")
-        client_thread = threading.Thread(target=ricevi_comandi ,args=(conn,))
-        client_thread.start()
+        data = conn.recv(4096).decode('utf-8')
+        credentials = json.loads(data)
+
+        response={"status":"fail"}
+        for user in users:
+            if user["username"] == credentials["username"] and user["psw"] == credentials["password"]:
+                response["status"]="success"
+                break
+    
+        conn.send(json.dumps(response).encode('utf-8'))
+        conn.close()
+        
+
 
 
 
