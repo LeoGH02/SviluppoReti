@@ -4,6 +4,7 @@ import sys
 import threading
 import tkinter as tk
 from tkinter import messagebox
+from functools import partial
 
 #implementare connessione STUDENTE-SEGRETERIA-UNIVERSITA
 #implementare funzione login 
@@ -40,6 +41,16 @@ class StudentClient:
         #i dati ottenuti corrispondo agli esami presenti i quali sono gestiti altrove
         response = json.loads(self.client_socket.recv(4096).decode('utf-8'))
         return response
+    
+    def send_exam_booking_request(self,esame,matricola,data):
+        #informo il server delle segreteria che voglio prenotare un esame.
+        booking_data = {"matricola":matricola,"esame":esame,"data":data,"type":"bookExam"}
+        #mando richiesta al server
+        self.client_socket.send(json.dumps(booking_data).encode('utf-8'))
+        #i dati ottenuti vengono salvati in response
+        response = json.loads(self.client_socket.recv(4096).decode('utf-8'))
+        return response
+
     
     def disconnect_from_server(self):
         self.client_socket.close()
@@ -81,20 +92,23 @@ class StudentGui:
         self.login_btn = tk.Button(self.root, text="Login", command=self.send_login_request)
         self.login_btn.grid(row=4, column=0, padx=10, pady=1, sticky="n")
 
+        #mi server il numero matricola dello studente il quale verrà inizializzato più avanti nel codice
+        self.matricola = ""
 
 
 
-    def create_user_window(self,username):
+
+    def create_user_window(self,username,student_number):
         #nascondi la finestra del login
         self.root.withdraw()
         #crea finestra che mostra gli esami
         user_window = tk.Toplevel(self.root)
         user_window.title("Esami Disponibili")
 
-        first_label = tk.Label(user_window,text=f"Ciao {username}! Cosa vuoi fare?")     
+        first_label = tk.Label(user_window,text=f"Ciao {username} {student_number}! Cosa vuoi fare?")     
         first_label.grid(row=0,column=0,pady=(0,5))  
 
-        view_ex_btn = tk.Button(user_window,text="Visualizzi Esami")
+        view_ex_btn = tk.Button(user_window,text="Visualizzi Esami",command=self.view_Exam_table)
         view_ex_btn.grid(row=1,column=0,pady=(0,5),sticky="w")
 
         #funzione annidata per gestire uscita e disconnessione dall'interfaccia
@@ -109,7 +123,26 @@ class StudentGui:
 
 
     def view_Exam_table(self):
-        response = self.student_client.send_exam_table_request()
+        esami = self.student_client.send_exam_table_request()
+        exam_window = tk.Toplevel()
+        exam_window.title("Esami")
+
+        for i,esame in enumerate(esami):
+            esa = tk.Label(exam_window,text=esame["nome"]).grid(row=i,column=0,pady=(0,10),sticky="w")
+            data_esa = tk.Label(exam_window,text=esame["data"]).grid(row = i, column=1,padx=10)
+            prenota_esame_btn = tk.Button(exam_window,text="Prenota",
+                                          command=partial(self.book_exam,esame["nome"],self.matricola,esame["data"])) #utilizzo libreria functools per estendere e aggiungere la mia funzione
+            prenota_esame_btn.grid(row=i, column=2)
+
+
+
+    def book_exam(self,esame,matricola,data):
+        response = self.student_client.send_exam_booking_request(esame,matricola,data)
+        if response["status"] == "success":
+            messagebox.showinfo("Successo",f"Prenotazione effettuata con Successo\n Numero Prenotazione {response["booking_number"]}")
+        else:
+            messagebox.showinfo("Errore","Prenotazione non Effettuata")
+
 
 
     def send_login_request(self):
@@ -119,7 +152,8 @@ class StudentGui:
         #effettua controllo della response ottenuta dal server
         if response["status"] == "success":
             messagebox.showinfo("Successo","Login avvenuto con successo")
-            self.create_user_window(username)
+            self.matricola = response["matricola"]
+            self.create_user_window(username,self.matricola)
         else:
             messagebox.showerror("Errore", "username o password errati")
 

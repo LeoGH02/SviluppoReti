@@ -26,7 +26,9 @@ class SecretaryServer:
                 #inoltra i dati al server dell'università
                 uni_response = self.forward_request_to_university_server(request_data)
                 #inoltriamo la response dell'uni al client studente
-                client_socket.sendall(json.dumps(uni_response).encode('utf-8'))
+                rispostaUni = json.dumps(uni_response)
+                print(rispostaUni)
+                client_socket.sendall(rispostaUni.encode('utf-8'))
         finally:
             client_socket.close()
 

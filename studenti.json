@@ -1,12 +1,14 @@
 [
     {
         "username":"leonardo",
-        "psw":"asd123"
+        "psw":"asd123",
+        "matricola":"10001452"
     },
 
     {
         "username":"luca",
-        "psw":"asd123"
+        "psw":"asd123",
+        "matricola":"10001882"
     }
 ]
 
