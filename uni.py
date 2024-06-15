@@ -65,7 +65,7 @@ class UniversityServer:
                 with open("prenotazioni.json", 'r') as f:
                     prenotazioni = json.load(f)
                     #Controlla se l'esame è già stato prenotato dalla stessa matricola
-                    count_prenotazioni = sum(1 for p in prenotazioni if  p["esame"] == info["esame"])
+                    count_prenotazioni = sum(1 for p in prenotazioni if  p["esame"] == info["esame"] and p["data"]  == info["data"])
                     response["booking_number"] = count_prenotazioni + 1
             except (FileNotFoundError, json.JSONDecodeError):
                 prenotazioni = []
@@ -81,8 +81,44 @@ class UniversityServer:
             print(f"Errore nella prenotazione dell'esame: {e}")
         return response
 
+    def add_Exam(self, request):
+        response = {"status": "fail"}
+        try:
+            info = request
 
-                
+            esame = {
+                "nome": info["exam_name"],
+                "data": [info["dates"]]
+            }
+
+            esami = []
+            try:
+                # Carica i dati esistenti, se il file esiste e non è vuoto
+                with open("esami.json", "r") as f:
+                    esami = json.load(f)
+            except FileNotFoundError:
+                # Se il file non esiste, verrà creato quando scriveremo
+                pass
+            except json.JSONDecodeError:
+                print("Errore nel decodificare il file JSON, creando un nuovo elenco di esami.")
+            
+            # Verifica se l'esame esiste già
+            for e in esami:
+                if e["nome"] == info["exam_name"] and e["data"] == info["dates"]:
+                    return response
+            
+            # Aggiungi il nuovo esame alla lista
+            esami.append(esame)
+            
+            # Scrivi nel file JSON
+            with open("esami.json", "w") as f:
+                json.dump(esami, f, indent=2)
+            
+            response["status"] = "success"
+        except Exception as e:
+            print(f"Errore durante l'aggiunzione dell'esame: {e}")
+        
+        return response  
 
 
     
@@ -104,9 +140,8 @@ class UniversityServer:
                             break 
                     return response
                 
-            elif request['type'] == "viewExams":
-                response = self.get_exams_data()
-                print(response)
+            elif request['type'] == "addExam":
+                response = self.add_Exam(request)
                 return response
             
             elif request['type'] == "bookExam":

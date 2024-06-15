@@ -24,13 +24,38 @@ class SecretaryServer:
                     break
                 request_data = json.loads(request)
                 #inoltra i dati al server dell'università
-                uni_response = self.forward_request_to_university_server(request_data)
-                #inoltriamo la response dell'uni al client studente
-                rispostaUni = json.dumps(uni_response)
-                print(rispostaUni)
-                client_socket.sendall(rispostaUni.encode('utf-8'))
+                if request_data["type"]=="viewExams":
+                    print("Me ne occupo io")
+                    seg_management = self.get_exams_data()
+                    seg_reponse = json.dumps(seg_management)
+                    client_socket.sendall(seg_reponse.encode('utf-8'))
+                else:    
+                    uni_response = self.forward_request_to_university_server(request_data)
+                    #inoltriamo la response dell'uni al client studente
+                    rispostaUni = json.dumps(uni_response)
+                    print(rispostaUni)
+                    client_socket.sendall(rispostaUni.encode('utf-8'))
         finally:
             client_socket.close()
+    
+    def get_exams_data(self):
+        try:
+            with open("esami.json", "r") as f:
+                data = json.load(f)
+                if data is not None:
+                    # data è già un oggetto Python (una lista nel tuo caso)
+                    # Continua con il trattamento dei dati JSON qui
+                    for exam in data:
+                        print(f"Esame: {exam['nome']}, Data: {exam['data']}")
+                        return data
+                else:
+                    print("Dati non disponibili o vuoti")
+        except FileNotFoundError:
+            print("File non trovato")
+        except json.JSONDecodeError as e:
+            print(f"Errore nel decodificare JSON: {e}")
+
+
 
     def forward_request_to_university_server(self,request_data):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as uni_socket:

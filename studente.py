@@ -129,10 +129,26 @@ class StudentGui:
 
         for i,esame in enumerate(esami):
             esa = tk.Label(exam_window,text=esame["nome"]).grid(row=i,column=0,pady=(0,10),sticky="w")
-            data_esa = tk.Label(exam_window,text=esame["data"]).grid(row = i, column=1,padx=10)
-            prenota_esame_btn = tk.Button(exam_window,text="Prenota",
-                                          command=partial(self.book_exam,esame["nome"],self.matricola,esame["data"])) #utilizzo libreria functools per estendere e aggiungere la mia funzione
-            prenota_esame_btn.grid(row=i, column=2)
+            see_dates_btn = tk.Button(exam_window,text="Vedi Date",
+                                      command=partial(self.show_dates,esame["nome"],esame["data"]))
+            see_dates_btn.grid(row=i, column=1,padx=10)
+
+
+    def show_dates(self, nome_esame, date_esame):
+        date_window = tk.Toplevel()
+        date_window.title("Date")
+
+        # Display the exam name
+        tk.Label(date_window, text=nome_esame).grid(row=0, column=0, sticky="w")
+
+        # Display the exam dates with buttons
+        for i, data in enumerate(date_esame):
+            tk.Label(date_window, text=data).grid(row=i+1, column=0, sticky="w")  # Adjust row to start from 1
+            prenota_esame_btn = tk.Button(date_window, text="Prenota",
+                                          command=partial(self.book_exam,nome_esame,self.matricola,data))
+            prenota_esame_btn.grid(row=i+1, column=1, padx=10, pady=10)
+
+
 
 
 
@@ -141,7 +157,7 @@ class StudentGui:
         if response["status"] == "success":
             messagebox.showinfo("Successo",f"Prenotazione effettuata con Successo\n Numero Prenotazione {response["booking_number"]}")
         else:
-            messagebox.showinfo("Errore","Prenotazione non Effettuata")
+            messagebox.showerror("Errore","Prenotazione non Effettuata")
 
 
 

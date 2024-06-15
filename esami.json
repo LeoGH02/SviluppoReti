@@ -1,13 +1,30 @@
 [
-    {
-        "nome":"Algoritmi e Strutture Dati",
-        "data":"20/07/2024"
-    },
-
-    {
-        "nome":"ELIM",
-        "data":"21/07/2024"
-    }
-
-    
+  {
+    "nome": "Algoritmi e Strutture Dati",
+    "data": [
+      "20/07/2024",
+      "25/07/2024",
+      "30/07/2024"
+    ]
+  },
+  {
+    "nome": "Elaborazione delle immagini",
+    "data": [
+      "21/07/2024"
+    ]
+  },
+  {
+    "nome": "Nuovo2",
+    "data": [
+      "15-06-2024"
+    ]
+  },
+  {
+    "nome": "Calcolo Parallelo",
+    "data": [
+      "20-06-2024"
+    ]
+  }
 ]
+
+
