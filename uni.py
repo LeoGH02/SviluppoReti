@@ -1,8 +1,8 @@
 import json
 import socket
-import sys
 import threading
-import tkinter
+from datetime import datetime
+
 
 class UniversityServer:
 
@@ -50,48 +50,62 @@ class UniversityServer:
 
 
     def book_Exam(self, request):
-        response = {"status": "fail", "booking_number":0}
+        response = {"status": "fail", "booking_number": 0}
         try:
             info = request  # `request` è già un dizionario
 
             prenotazione = {
-
                 "matricola": info["matricola"],
                 "esame": info["esame"],
-                "data": info["data"]     
+                "data": info["data"]
             }
 
             try:
                 with open("prenotazioni.json", 'r') as f:
                     prenotazioni = json.load(f)
-                    #Controlla se l'esame è già stato prenotato dalla stessa matricola
-                    count_prenotazioni = sum(1 for p in prenotazioni if  p["esame"] == info["esame"] and p["data"]  == info["data"])
-                    response["booking_number"] = count_prenotazioni + 1
             except (FileNotFoundError, json.JSONDecodeError):
                 prenotazioni = []
 
-            #la nuova prenotazione viene prima accodata ai dizionari già presenti all'interno del file
-            prenotazioni.append(prenotazione)
-            #dopodichè il file viene sovrascritto con le nuove informazioni
-            with open("prenotazioni.json", 'w') as f:
-                json.dump(prenotazioni, f, indent=2)
+            prenotazione_trovata = False
 
-            response["status"] = "success"
+            # Verifica se la prenotazione associata a quel numero di matricola è già presente
+            for p in prenotazioni:
+                if (p["matricola"] == prenotazione["matricola"] and 
+                    p["esame"] == prenotazione["esame"] and 
+                    p["data"] == prenotazione["data"]):
+                    prenotazione_trovata = True
+                    break  # Esce dal ciclo una volta trovata la prenotazione
+
+            # Dobbiamo restituire il numero progressivo per la prenotazione dello studente
+            count_prenotazioni = sum(1 for p in prenotazioni if p["esame"] == prenotazione["esame"] and p["data"] == prenotazione["data"])
+            response["booking_number"] = count_prenotazioni + 1
+
+            # La nuova prenotazione viene prima accodata ai dizionari già presenti all'interno del file
+            if not prenotazione_trovata: 
+                prenotazioni.append(prenotazione)
+                # Dopodiché il file viene sovrascritto con le nuove informazioni
+                with open("prenotazioni.json", 'w') as f:
+                    json.dump(prenotazioni, f, indent=2)
+                response["status"] = "success"
         except Exception as e:
             print(f"Errore nella prenotazione dell'esame: {e}")
-        return response
 
+        return response
+    
+    
     def add_Exam(self, request):
         response = {"status": "fail"}
         try:
             info = request
 
+            esame_nome = info["exam_name"].lower()  # Converti il nome dell'esame a minuscolo per il confronto
+            esame_data = info["dates"]
+
             esame = {
-                "nome": info["exam_name"],
-                "data": [info["dates"]]
+                "nome": info["exam_name"],  # Mantieni il nome originale per la memorizzazione
+                "data": [esame_data]
             }
 
-            esami = []
             try:
                 # Carica i dati esistenti, se il file esiste e non è vuoto
                 with open("esami.json", "r") as f:
@@ -102,23 +116,32 @@ class UniversityServer:
             except json.JSONDecodeError:
                 print("Errore nel decodificare il file JSON, creando un nuovo elenco di esami.")
             
+            esame_trovato = False
+            
             # Verifica se l'esame esiste già
             for e in esami:
-                if e["nome"] == info["exam_name"] and e["data"] == info["dates"]:
-                    return response
+                if e["nome"].lower() == esame_nome:
+                    esame_trovato = True
+                    if esame_data not in e["data"]:
+                        e["data"].append(esame_data)
+                        # Ordina le date
+                        e["data"] = sorted(e["data"], key=lambda x: datetime.strptime(x, "%d-%m-%Y"))
+                        response["status"] = "success"
+                    break
             
-            # Aggiungi il nuovo esame alla lista
-            esami.append(esame)
+            # Se l'esame non è stato trovato, aggiungilo alla lista
+            if not esame_trovato:
+                esami.append(esame)
+                response["status"] = "success"
             
             # Scrivi nel file JSON
             with open("esami.json", "w") as f:
                 json.dump(esami, f, indent=2)
             
-            response["status"] = "success"
         except Exception as e:
             print(f"Errore durante l'aggiunzione dell'esame: {e}")
         
-        return response  
+        return response
 
 
     

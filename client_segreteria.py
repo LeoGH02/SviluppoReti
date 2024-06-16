@@ -44,7 +44,7 @@ class SecretaryGUI:
         self.secretary_client = secretary_client
         self.root = tk.Tk()  # Crea la finestra principale
         self.root.title("Secretary Interface")  # Imposta il titolo della finestra
-        self.root.geometry("600x600")
+        self.root.geometry("300x150")
 
         # Crea e imballa i widget per l'input del nome dell'esame
         tk.Label(self.root, text="Exam Name:").pack()
