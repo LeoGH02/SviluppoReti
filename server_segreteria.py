@@ -29,7 +29,7 @@ class SecretaryServer:
                 # Inoltra i dati al server dell'università se necessario
                 #se la richiesta dello studente è quella di visualizzare gli esami allora viene gestita direttamente da questo server
                 if request_data["type"] == "viewExams":
-                    print("Me ne occupo io")
+                    #print("Me ne occupo io") frase per debug
                     seg_management = self.get_exams_data()  # Ottiene i dati degli esami
                     seg_reponse = json.dumps(seg_management)  # Codifica i dati degli esami in JSON
                     client_socket.sendall(seg_reponse.encode('utf-8'))  # Invia i dati al client
